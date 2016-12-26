@@ -1,6 +1,9 @@
 # day4
 import os
 import collections
+import itertools
+
+ALPHABETS = 'abcdefghijklmnopqrstuvwxyz'
 
 
 def get_input():
@@ -18,13 +21,14 @@ def get_input():
 
 def get_parts(name):
     parts = name.split('-')
-    letters = ''.join(parts[:-1])
+    letters = '-'.join(parts[:-1])
     room_id = int(parts[-1].split('[')[0])
     checksum = parts[-1].split('[')[-1].split(']')[0]
     return letters, room_id, checksum
 
 
 def get_checksum(letters):
+    letters = ''.join(letters.split('-'))
     d = collections.defaultdict(int)
     for alpha in letters:
         d[alpha] += 1
@@ -47,25 +51,32 @@ def get_sum_ids(names):
     return sum_ids
 
 
-def decrypt_letters(name):
-    chars = [l for l in 'abcdefghijklmnopqrstuvwxyz']
-    phrase = name[:-11].split('-')
-    new_phrase = []
-    for word in phrase:
-        decrypted = []
-        for char in word:
-            if char == 'z':
-                decrypted.append('a')
-            else:
-                decrypted.append(chars[chars.index(char) + 1])
-        new_phrase.append(''.join(decrypted))
+def decrypted_char(look_up, rotation):
+    for i, c in enumerate(itertools.cycle(ALPHABETS)):
+        if i == look_up + rotation:
+            return c
 
-    return ' '.join(new_phrase)
+
+def decrypt(name, rotation):
+    decrypted = []
+    for char in name:
+        if char == '-':
+            decrypted.append(' ')
+        else:
+            decrypted.append(decrypted_char(ALPHABETS.index(char), rotation))
+    return ''.join(decrypted)
 
 
 def main():
     names = [name for name in get_input().split('\n') if name.strip()]
     print 'Part 1: Sum of real room IDs: %s' % get_sum_ids(names)
+    for name in names:
+        letters, room_id, _ = get_parts(name)
+        decrypted = decrypt(letters, room_id)
+        if 'NORTH' in decrypted.upper() and 'POLE' in decrypted.upper():
+            print "Part 2: '{0}' has sector id: {1}".format(
+                decrypted, room_id)
+            break
 
 
 if __name__ == '__main__':
