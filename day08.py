@@ -1,6 +1,20 @@
 # day8
+import os
 import collections
 import time
+
+
+def get_input():
+    day = os.path.basename(os.path.splitext(__file__)[0])
+    input_file_name = '{0}.input'.format(day)
+    input_file_path = os.path.abspath(
+        os.path.join(__file__, '../', input_file_name)
+    )
+
+    input_data = None
+    with open(input_file_path, 'r') as fp:
+        input_data = fp.read()
+    return input_data
 
 
 class Display(object):
@@ -37,11 +51,9 @@ class Display(object):
             self.show()
             time.sleep(0.05)
 
-        time.sleep(1)
-
+        time.sleep(2)
         self.blink()
-
-        self.fade(reverse=True)
+        self.fade()
 
     def fade(self, fill=False, reverse=False):
         pixel = self.on_pixel if fill else self.off_pixel
@@ -177,12 +189,17 @@ class Display(object):
         return self._parse_command(string, 'rect', 'x')
 
 
-input_string = None
-with open('/Users/alok/Desktop/day8.input', 'U') as fp:
-    input_string = fp.read()
+def main():
+    input_string = get_input()
+    commands = [s for s in input_string.split('\n') if s.strip()]
 
-commands = [s for s in input_string.split('\n') if s.strip()]
+    display = Display(50, 6)
+    for command in commands:
+        display.apply_op(command)
+    print 'Part 1: Total lit: {0}\n'.format(display.total_lit)
+    print 'Part 2: Following is display after commands - \n'
+    display.show()
 
-display = Display(50, 6)
-display.set_display_char(on_char='|', off_char=' ')
-display.play(commands)
+
+if __name__ == '__main__':
+    main()
