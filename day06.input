@@ -1,8 +1,4 @@
-# day6
-import collections
-
-
-inputs = """xgadmpyq
+xgadmpyq
 kzgagqyc
 otfatqvh
 kekjvmlr
@@ -652,32 +648,3 @@ fjhckmee
 pipmrccp
 ohpricwx
 tylgtpaw
-"""
-
-messages = inputs.split('\n')
-
-
-def parse_messages(messages):
-    columns = [collections.defaultdict(int) for i in range(len(messages[0]))]
-    for message in messages:
-        for index, char in enumerate(message):
-            columns[index][char] += 1
-    return columns
-
-
-def filter_noise(parsed_message):
-    filtered = []
-    for column in parsed_message:
-        filtered.append(
-            sorted(
-                column.keys(),
-                key=lambda x: column.get(x),
-                reverse=True,
-                )[-1],
-        )
-
-    return ''.join(filtered)
-
-
-parsed_messages = parse_messages(messages)
-print filter_noise(parsed_messages)
