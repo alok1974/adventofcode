@@ -1,3 +1,4 @@
+# Day 03 - http://adventofcode.com/2016/day/3
 import os
 
 

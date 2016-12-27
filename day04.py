@@ -1,4 +1,4 @@
-# day4
+# Day 04 - http://adventofcode.com/2016/day/4
 import os
 import collections
 import itertools

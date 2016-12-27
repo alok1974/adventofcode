@@ -1,4 +1,4 @@
-# day7
+# Day 07 - http://adventofcode.com/2016/day/7
 import os
 
 

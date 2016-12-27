@@ -1,4 +1,4 @@
-# day9
+# Day 09 - http://adventofcode.com/2016/day/9
 import os
 import collections
 

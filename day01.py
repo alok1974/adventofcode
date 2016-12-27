@@ -1,4 +1,4 @@
-# day1
+# Day 01 - http://adventofcode.com/2016/day/1
 import os
 
 DIR_DEF = 'NESW'

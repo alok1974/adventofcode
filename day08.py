@@ -1,4 +1,4 @@
-# day8
+# Day 08 - http://adventofcode.com/2016/day/8
 import os
 import collections
 import time
