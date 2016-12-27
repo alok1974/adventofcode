@@ -1,20 +1,90 @@
 # day8
-ops = """"""
+import collections
+import time
 
 
 class Display(object):
+    off_pixel, on_pixel = range(2)
+
     def __init__(self, width=6, height=50):
         self.width = width
         self.height = height
+        self.display = self.init_display()
+        self._display_char = {self.off_pixel: ' ', self.on_pixel: '|'}
+        self._start_frame = '| '
+        self._end_frame = ' |'
 
-        self.display = [
+    @classmethod
+    def from_input(cls, commands, width, height):
+        inst = cls(width, height)
+
+        for command in commands:
+            try:
+                inst.apply_op(command)
+            except IndexError:
+                print 'Failed to apply command {0}'.format(command)
+                raise
+
+        return inst
+
+    def set_display_char(self, on_char='#', off_char='.'):
+        self._display_char[self.off_pixel] = off_char
+        self._display_char[self.on_pixel] = on_char
+
+    def play(self, commands):
+        for command in commands:
+            self.apply_op(command)
+            self.show()
+            time.sleep(0.05)
+
+        time.sleep(1)
+
+        self.blink()
+
+        self.fade(reverse=True)
+
+    def fade(self, fill=False, reverse=False):
+        pixel = self.on_pixel if fill else self.off_pixel
+        while True:
+            for index, row in enumerate(self.display):
+                row = collections.deque(row)
+                if not reverse:
+                    row.pop()
+                    row.appendleft(pixel)
+                else:
+                    row.popleft()
+                    row.append(pixel)
+                self.set_row(list(row), index)
+                self.show()
+                time.sleep(0.01)
+
+            if fill and self.total_lit == self.width * self.height:
+                break
+            elif self.total_lit == 0:
+                break
+
+    def blink(self, num_blinks=3):
+        pixel_buffer = self.display
+
+        for i in range(num_blinks):
+            time.sleep(0.2)
+            self.clear()
+            self.show()
+            time.sleep(0.2)
+            self.set_display(pixel_buffer)
+            self.show()
+
+    def set_display(self, pixel_buffer):
+        self.display = pixel_buffer
+
+    def clear(self):
+        self.display = self.init_display()
+
+    def init_display(self):
+        return [
             [0 for i in range(self.width)]
             for i in range(self.height)
         ]
-
-        self._char_map = {0: '.', 1: '#'}
-        self._start_frame = '| '
-        self._end_frame = ' |'
 
     def rect(self, x, y):
         for row in range(y):
@@ -23,13 +93,18 @@ class Display(object):
 
     def rotate_row(self, row_num, offset):
         row = self.get_row(row_num)
-        rotated = self.shift(row, offset)
+        rotated = self.rotate(row, offset)
         self.set_row(rotated, row_num)
 
     def rotate_column(self, column_num, offset):
         column = self.get_column(column_num)
-        column = self.shift(column, offset)
+        column = self.rotate(column, offset)
         self.set_column(column, column_num)
+
+    def rotate(self, array, offset):
+        array = collections.deque(array)
+        array.rotate(offset)
+        return list(array)
 
     def get_row(self, row_num):
         return self.display[row_num]
@@ -51,11 +126,18 @@ class Display(object):
                 if column_index == column_num:
                     row[column_index] = column[row_index]
 
-    def shift(self, array, offset):
-        for i in range(offset):
-            pixel = array.pop()
-            array.insert(0, pixel)
-        return array
+    def apply_op(self, op_string):
+        if 'rect' in op_string:
+            x, y = self._parse_rect_command(op_string)
+            self.rect(x, y)
+        else:
+            num, offset = self._parse_rotate_command(op_string)
+            if 'row' in op_string:
+                self.rotate_row(num, offset)
+            elif 'column' in op_string:
+                self.rotate_column(num, offset)
+            else:
+                raise ValueError("cant apply op command {0}".format(op_string))
 
     @property
     def total_lit(self):
@@ -64,26 +146,43 @@ class Display(object):
             num_lit += sum(row)
         return num_lit
 
-    def show(self):
+    def show(self, frame=False):
         out = []
         for row in self.display:
-            out.append(self._start_frame)
+            if frame:
+                out.append(self._start_frame)
             for pixel in row:
                 out.append(self._format_pixel(pixel))
-            out.append(self._end_frame)
+            if frame:
+                out.append(self._end_frame)
             out.append('\n')
         print ''.join(out)
 
     def _format_pixel(self, pixel):
-        return ' {0} '.format(self._char_map.get(pixel))
+        return '{0}'.format(self._display_char.get(pixel))
+
+    def _parse_command(self, string, first_splitter, second_splitter):
+        return map(
+            int,
+            map(
+                str.strip,
+                string.split(first_splitter)[-1].split(second_splitter),
+            ),
+        )
+
+    def _parse_rotate_command(self, string):
+        return self._parse_command(string, '=', 'by')
+
+    def _parse_rect_command(self, string):
+        return self._parse_command(string, 'rect', 'x')
 
 
-display = Display(7, 3)
-display.rect(5, 2)
-display.rotate_column(1, 100)
-display.rotate_row(0, 4)
-display.rotate_column(1, 1)
-display.show()
-print display.total_lit
-# display.rotate_row(0, 4)
-# display.show()
+input_string = None
+with open('/Users/alok/Desktop/day8.input', 'U') as fp:
+    input_string = fp.read()
+
+commands = [s for s in input_string.split('\n') if s.strip()]
+
+display = Display(50, 6)
+display.set_display_char(on_char='|', off_char=' ')
+display.play(commands)
